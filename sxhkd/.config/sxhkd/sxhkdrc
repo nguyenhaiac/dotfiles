@@ -1,0 +1,24 @@
+super + Return
+	st
+super + d
+	rofi -show run
+super + r
+	st -e ranger
+super + alt + control + shift + e
+  emacsclient -c -n
+super + alt + control + shift + f
+  firefox
+button7
+  pactl set-sink-volume @DEFAULT_SINK@ +2%
+button6
+  pactl set-sink-volume @DEFAULT_SINK@ -2%
+
+super + alt + control + shift + h
+  st -e htop
+
+super + alt + control + shift + i
+	st -e nmtui
+
+super + alt + control + shift + s
+	st -e spt
+

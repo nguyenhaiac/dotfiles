@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+stalonetray &
+sxhkd &
+emacs --daemon
+rescuetime &
+dropbox.py start

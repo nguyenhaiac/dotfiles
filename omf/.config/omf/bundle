@@ -1,0 +1,11 @@
+package autojump
+package fzf-autojump
+package virtualfish
+package z
+theme beloglazov
+theme bobthefish
+theme coffeeandcode
+theme default
+theme eclm
+theme technopagan
+theme toaster
