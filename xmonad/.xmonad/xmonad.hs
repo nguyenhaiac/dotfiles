@@ -229,35 +229,6 @@ myKeys =
 
     --- Open Terminal
         -- , ("M-<Return>", spawn myTerminal)
-
-    --- Dmenu Scripts (Alt+Ctr+Key)
-        , ("M1-C-<Return>", spawn "dmenu_run -fn 'UbuntuMono Nerd Font:size=10' -nb '#292d3e' -nf '#bbc5ff' -sb '#82AAFF' -sf '#292d3e' -p 'dmenu:'")
-        , ("M1-C-e", spawn "./.dmenu/dmenu-edit-configs.sh")
-        , ("M1-C-h", spawn "./.dmenu/dmenu-hugo.sh")
-        , ("M1-C-m", spawn "./.dmenu/dmenu-sysmon.sh")
-        , ("M1-C-p", spawn "passmenu")
-        , ("M1-C-s", spawn "./.dmenu/dmenu-surfraw.sh")
-
-    --- My Applications (Super+Alt+Key)
-        , ("M-M1-a", spawn (myTerminal ++ " -e ncpamixer"))
-        , ("M-M1-b", spawn ("surf www.youtube.com/c/DistroTube/"))
-        , ("M-M1-c", spawn (myTerminal ++ " -e cmus"))
-        , ("M-M1-e", spawn (myTerminal ++ " -e neomutt"))
-        , ("M-M1-f", spawn (myTerminal ++ " -e sh ./.config/vifm/scripts/vifmrun"))
-        , ("M-M1-i", spawn (myTerminal ++ " -e irssi"))
-        , ("M-M1-j", spawn (myTerminal ++ " -e joplin"))
-        , ("M-M1-l", spawn (myTerminal ++ " -e lynx -cfg=~/.lynx/lynx.cfg -lss=~/.lynx/lynx.lss gopher://distro.tube"))
-        , ("M-M1-m", spawn (myTerminal ++ " -e toot curses"))
-        , ("M-M1-n", spawn (myTerminal ++ " -e newsboat"))
-        , ("M-M1-p", spawn (myTerminal ++ " -e pianobar"))
-        , ("M-M1-r", spawn (myTerminal ++ " -e rtv"))
-        , ("M-M1-w", spawn (myTerminal ++ " -e wopr report.xml"))
-        , ("M-M1-y", spawn (myTerminal ++ " -e youtube-viewer"))
-
-    --- Multimedia Keys
-        , ("<XF86AudioPlay>", spawn "cmus toggle")
-        , ("<XF86AudioPrev>", spawn "cmus prev")
-        , ("<XF86AudioNext>", spawn "cmus next")
         -- , ("<XF86AudioMute>",   spawn "amixer set Master toggle")  -- Bug prevents it from toggling correctly in 12.04.
         , ("<XF86AudioLowerVolume>", spawn "amixer set Master 5%- unmute")
         , ("<XF86AudioRaiseVolume>", spawn "amixer set Master 5%+ unmute")

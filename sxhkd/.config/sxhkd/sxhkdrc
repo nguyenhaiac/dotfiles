@@ -22,3 +22,8 @@ super + alt + control + shift + i
 super + alt + control + shift + s
 	st -e spt
 
+XF86AudioRaiseVolume
+  pactl set-sink-volume @DEFAULT_SINK@ +2%
+
+XF86AudioLowerVolume
+  pactl set-sink-volume @DEFAULT_SINK@ -2%
