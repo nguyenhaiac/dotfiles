@@ -150,7 +150,7 @@ spawnSelected' lst = gridselect conf lst >>= flip whenJust spawn
 myKeys =
     --- Xmonad
         [ ("M-C-r", spawn "xmonad --recompile;xmonad --restart")      -- Recompiles xmonad
-        , ("M-S-<backspace>", io exitSuccess)                  -- Quits xmonad
+        , ("M-S-<backspace>", spawn "prompt \"Do you want to shutdown\" \"shutdown -h now \"")                  -- Quits xmonad
 
     --- Windows
         , ("M-q", kill1)                           -- Kill the currently focused client
@@ -164,30 +164,19 @@ myKeys =
     --- Grid Select
         , (("M-S-t"), spawnSelected'
           [ ("Audacity", "audacity")
-          , ("Deadbeef", "deadbeef")
           , ("Emacs", "emacs")
           , ("Firefox", "firefox")
-          , ("Geany", "geany")
-          , ("Geary", "geary")
-          , ("Gimp", "gimp")
-          , ("Kdenlive", "kdenlive")
-          , ("LibreOffice Impress", "loimpress")
-          , ("LibreOffice Writer", "lowriter")
-          , ("OBS", "obs")
-          , ("PCManFM", "pcmanfm")
           , ("Simple Terminal", "st")
-          , ("Steam", "steam")
           , ("Surf Browser",    "surf suckless.org")
-          , ("Xonotic", "xonotic-glx")
           ])
 
         , ("M-S-g", goToSelected $ mygridConfig myColorizer)
         , ("M-S-b", bringSelected $ mygridConfig myColorizer)
  --- Windows navigation
-        , ("M-m", windows W.focusMaster)             -- Move focus to the master window
+        , ("M-o", windows W.focusMaster)             -- Move focus to the master window
         , ("M-e", windows W.focusDown)               -- Move focus to the next window
         , ("M-u", windows W.focusUp)                 -- Move focus to the prev window
-        , ("M-S-m", windows W.swapMaster)            -- Swap the focused window and the master window
+        , ("M-S-o", windows W.swapMaster)            -- Swap the focused window and the master window
         , ("M-S-u", windows W.swapDown)              -- Swap the focused window with the next window
         , ("M-S-e", windows W.swapUp)                -- Swap the focused window with the prev window
         , ("M-<Backspace>", promote)                 -- Moves focused window to master, all others maintain order
@@ -204,7 +193,6 @@ myKeys =
         , ("M-S-f", sendMessage (T.Toggle "float"))
         , ("M-S-x", sendMessage $ Toggle REFLECTX)
         , ("M-S-y", sendMessage $ Toggle REFLECTY)
-        , ("M-S-m", sendMessage $ Toggle MIRROR)
         , ("M-<KP_Multiply>", sendMessage (IncMasterN 1))   -- Increase number of clients in the master pane
         , ("M-<KP_Divide>", sendMessage (IncMasterN (-1)))  -- Decrease number of clients in the master pane
         , ("M-S-<KP_Multiply>", increaseLimit)              -- Increase number of windows that can be shown
@@ -214,14 +202,12 @@ myKeys =
         , ("M-<Right>", sendMessage Expand)
         , ("M-C-<Right>", sendMessage MirrorShrink)
         , ("M-C-<Left>", sendMessage MirrorExpand)
-        , ("M-S-;", sendMessage zoomReset)
-        , ("M-;", sendMessage ZoomFullToggle)
 
     --- Workspaces
-        , ("M-;", moveTo Next nonNSP)                                -- Go to next workspace
-        , ("M-y", moveTo Prev nonNSP)                           -- Go to previous workspace
-        , ("M-S-;", shiftTo Next nonNSP >> moveTo Next nonNSP)       -- Shifts focused window to next workspace
-        , ("M-S-y", shiftTo Prev nonNSP >> moveTo Prev nonNSP)  -- Shifts focused window to previous workspace
+        , ("M-[", moveTo Next nonNSP)                                -- Go to next workspace
+        , ("M-]", moveTo Prev nonNSP)                           -- Go to previous workspace
+        , ("M-S-[", shiftTo Next nonNSP >> moveTo Next nonNSP)       -- Shifts focused window to next workspace
+        , ("M-S-]", shiftTo Prev nonNSP >> moveTo Prev nonNSP)  -- Shifts focused window to previous workspace
 
     --- Scratchpads
         , ("M-C-<Return>", namedScratchpadAction myScratchPads "terminal")

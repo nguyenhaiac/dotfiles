@@ -4,4 +4,4 @@ sxhkd &
 emacs --daemon
 rescuetime &
 dropbox.py start
-xmodmap .Xmodmap
+[ -f ~/.Xmodmap ] && xmodmap ~/.Xmodmap

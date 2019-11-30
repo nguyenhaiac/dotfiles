@@ -8,6 +8,9 @@ super + alt + control + shift + e
   emacsclient -c -n
 super + alt + control + shift + f
   firefox
+
+super + alt + control + shift + q
+  prompt "Do you want to shutdown?" "shutdown -h now"
 button7
   pactl set-sink-volume @DEFAULT_SINK@ +2%
 button6
