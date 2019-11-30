@@ -344,7 +344,7 @@ It should only modify the values of Spacemacs settings."
    ;; A value from the range (0..100), in increasing opacity, which describes
    ;; the transparency level of a frame when it's active or selected.
    ;; Transparency can be toggled through `toggle-transparency'. (default 90)
-   dotspacemacs-active-transparency 90
+   dotspacemacs-active-transparency 80
 
    ;; A value from the range (0..100), in increasing opacity, which describes
    ;; the transparency level of a frame when it's inactive or deselected.
@@ -478,6 +478,7 @@ This function is called immediately after `dotspacemacs/init', before layer
 configuration.
 It is mostly for variables that should be set before packages are loaded.
 If you are unsure, try setting them in `dotspacemacs/user-config' first."
+  (set-frame-font "Fira Mono for Powerline")
   )
 
 (defun dotspacemacs/user-load ()
@@ -604,7 +605,6 @@ Skip project and sub-project tasks, habits, and loose non-project tasks."
       org-agenda-block-separator nil
       org-agenda-compact-blocks t
       org-agenda-start-with-log-mode t)
-
 (setq org-agenda-files (list "~/Dropbox/orggtd/todo.org"))
 (require 'org-habit)
 (custom-declare-face '+org-todo-active '((t (:inherit (bold font-lock-constant-face org-todo)))) "")
