@@ -64,8 +64,8 @@ This function should only modify configuration layer settings."
      better-defaults
      emacs-lisp
      git
-     helm
-     ;; ivy
+     ;; helm
+     ivy
      themes-megapack
      lsp
      ;; markdown
@@ -90,7 +90,7 @@ This function should only modify configuration layer settings."
    ;; To use a local version of a package, use the `:location' property:
    ;; '(your-package :location "~/path/to/your-package/")
    ;; Also include the dependencies as they will not be resolved automatically.
-   dotspacemacs-additional-packages '(general org-super-agenda org-ql)
+   dotspacemacs-additional-packages '(general org-super-agenda org-ql anki-editor)
 
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
@@ -478,7 +478,7 @@ This function is called immediately after `dotspacemacs/init', before layer
 configuration.
 It is mostly for variables that should be set before packages are loaded.
 If you are unsure, try setting them in `dotspacemacs/user-config' first."
-  (set-frame-font "Fira Mono for Powerline")
+  (setq default-frame-alist '((font . "Fira Mono for Powerline-10")))
   )
 
 (defun dotspacemacs/user-load ()
@@ -494,6 +494,7 @@ This function is called at the very end of Spacemacs startup, after layer
 configuration.
 Put your configuration code here, except for variables that should be set
 before packages are loaded."
+  (windmove-default-keybindings 'hyper)
   (yas-global-mode 1)
 (defun bh/is-project-p ()
   "Any task with a todo keyword subtask"
@@ -633,24 +634,34 @@ Skip project and sub-project tasks, habits, and loose non-project tasks."
         ("[?]"  . +org-todo-onhold)
         ("WAIT" . +org-todo-onhold)
         ))
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages '((C . t)))
+
+
+(setq org-agenda-format-date (lambda (date) (concat "\n"
+                                                    (make-string (window-width) 9472)
+                                                    "\n"
+                                                    (org-agenda-format-date-aligned date))))
 (setq org-agenda-custom-commands
       '(("z" "Super zaen view"
-         ((agenda "" ((org-agenda-span 4)
+         ((agenda "" ((org-agenda-span 3)
                       (org-super-agenda-groups
-                       '((:name "Habits"
-                                :habit)
-                         (:name "Scheduled"
+                       '((:name "Habit"
+				:habit t)
+
+			 (:name "Schedule"
                                 :time-grid t
-                                :scheduled t
-                                :order 1)
+				:scheduled t
+                                :order 2)
 			 (:discard (:anything t))))))
 
 	  (alltodo "" ((org-agenda-overriding-header "Project Task")
 		      (org-agenda-skip-function 'bh/skip-non-project-tasks)
                       (org-super-agenda-groups
                        '((:name none
-                                :todo t
-                                :order 1)))))
+				 :todo t
+                                 :order 1)))))
 
 	  (alltodo "" ((org-agenda-overriding-header "Active Project")
                        (org-super-agenda-groups
@@ -662,19 +673,30 @@ Skip project and sub-project tasks, habits, and loose non-project tasks."
 	  (alltodo "" ((org-agenda-overriding-header "Next Task")
                        (org-super-agenda-groups
                         '((:name none
-                                 :discard (:habit))
-                          (:name none
-                                 :todo "NEXT"
+				 :discard (:not (:todo "NEXT"))
+				 :discard (:habit)
                                  :order 1)
-                          (:discard (:anything t))))))
+			  (:name none
+				 :todo "NEXT"
+				 :face (:background "RosyBrown1" :underline t))
+                          ))))
 
-	  (alltodo "" ((org-agenda-overriding-header "Standalone Task")
-                 (org-agenda-skip-function 'bh/skip-project-tasks)
+	  (alltodo "" ((org-agenda-overriding-header "Doing")
                        (org-super-agenda-groups
                         '((:name none
-                                 :discard (:habit))
-                          (:name none
-                                 :todo t
+				 :discard (:not (:todo ("STRT" "[-]")))
+				 :discard (:habit)
+                                 :order 1)
+			  (:name none
+				 :todo t
+				 :face (:background "#8a9a5b" :underline t))
+                          ))))
+
+	  (alltodo "" ((org-agenda-overriding-header "Standalone Task")
+		       (org-agenda-skip-function 'bh/skip-project-tasks)
+                       (org-super-agenda-groups
+                        '((:name none
+                                 :todo ("TODO" "[ ]" "WAIT" "[?]")
                                  :order 1)
                           (:discard (:anything t))))))
 
@@ -689,6 +711,29 @@ Skip project and sub-project tasks, habits, and loose non-project tasks."
                           (:name none
                                  :children todo)))))
 	  ))))
+(setq org-capture-templates
+      (quote (("t" "todo" entry (file+headline "~/Dropbox/orggtd/todo.org" "Inbox")
+               "* [ ] %?\n%U\n%a\n" :clock-in t :clock-resume t)
+              ("n" "note" entry (file "~/Dropbox/orggtd/todo.org")
+               "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
+              ("j" "Journal" entry (file+datetree "~/Dropbox/orggtd/journal.org")
+               "* %?\n%U\n" :clock-in t :clock-resume t)
+              ("m" "Meeting" entry (file "~/Dropbox/orggtd/todo.org")
+               "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
+              ("p" "Phone call" entry (file "~/Dropbox/orggtd/todo.org")
+               "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
+              ("h" "Habit" entry (file "~/Dropbox/orggtd/todo.org")
+	       "* NEXT %?\nSCHEDULED: <%<%Y-%m-%d %a .+1d>>\n:PROPERTIES:\n:CREATED: %U\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:LOGGING: DONE(!)\n:ARCHIVE: %%s_archive::* Habits\n:END:\n%U\n"
+	       ))))
+(setq  org-habit-following-days 7
+       org-habit-preceding-days 10
+       org-habit-show-habits-only-for-today t)
+(setq org-agenda-tags-column -102)
+(setq org-habit-graph-column 50)
+(setq org-clock-out-remove-zero-time-clocks t)
+(setq org-clock-out-when-done t)
+(setq org-clock-persist t)
+
   )
 
 ;; Do not write anything past this comment. This is where Emacs will
@@ -706,7 +751,7 @@ This function is called at the very end of Spacemacs initialization."
  '(company-idle-delay 0.05)
  '(company-minimum-prefix-length 1)
  '(custom-safe-themes
-   '("2d392972cbe692ee4ac61dc79907af65051450caf690a8c4d36eb40c1857ba7d" "c8f959fb1ea32ddfc0f50db85fea2e7d86b72bb4d106803018be1c3566fd6c72" "c3e6b52caa77cb09c049d3c973798bc64b5c43cc437d449eacf35b3e776bf85c" "3da3325f3fb3a15fc49345f52a0ebbb66836c8f235c6df01298b6cfabf4b4ec0" "1728dfd9560bff76a7dc6c3f61e9f4d3e6ef9d017a83a841c117bd9bebe18613" "39dd7106e6387e0c45dfce8ed44351078f6acd29a345d8b22e7b8e54ac25bac4" "ea44def1fa1b169161512d79a65f54385497a6a5fbc96d59c218f852ce35b2ab" "b3697d12fb7c087e1337432be92026b5fd218e7e43277918c0fce680d573a90c" "2d1fe7c9007a5b76cea4395b0fc664d0c1cfd34bb4f1860300347cdad67fb2f9" "4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "e6ccd0cc810aa6458391e95e4874942875252cd0342efd5a193de92bfbb6416b" "6bc387a588201caf31151205e4e468f382ecc0b888bac98b2b525006f7cb3307" "af4dc574b2f96f5345d55b98af024e2db9b9bbf1872b3132bc66dffbf5e1ba1d" "53993d7dc1db7619da530eb121aaae11c57eaf2a2d6476df4652e6f0bd1df740" "70cc30fd9d27a8d0d3ae82974ac2c409fd2cd5746470e2246778c6bec2d4857c" "14f13fee1792f44c448df33e3d3a03ce9adbf1b47da8be490f604ac7ae6659b9" "56ed144b399e3fbf1fcfc5af854f0053b21c0e3e7cfc824f0473da6f4e179695" default))
+   '("285d1bf306091644fb49993341e0ad8bafe57130d9981b680c1dbd974475c5c7" "de9fa4b3614611bed2fe75e105bd0d37542924b977299736f158dd4d7343c666" "2d392972cbe692ee4ac61dc79907af65051450caf690a8c4d36eb40c1857ba7d" "c8f959fb1ea32ddfc0f50db85fea2e7d86b72bb4d106803018be1c3566fd6c72" "c3e6b52caa77cb09c049d3c973798bc64b5c43cc437d449eacf35b3e776bf85c" "3da3325f3fb3a15fc49345f52a0ebbb66836c8f235c6df01298b6cfabf4b4ec0" "1728dfd9560bff76a7dc6c3f61e9f4d3e6ef9d017a83a841c117bd9bebe18613" "39dd7106e6387e0c45dfce8ed44351078f6acd29a345d8b22e7b8e54ac25bac4" "ea44def1fa1b169161512d79a65f54385497a6a5fbc96d59c218f852ce35b2ab" "b3697d12fb7c087e1337432be92026b5fd218e7e43277918c0fce680d573a90c" "2d1fe7c9007a5b76cea4395b0fc664d0c1cfd34bb4f1860300347cdad67fb2f9" "4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "e6ccd0cc810aa6458391e95e4874942875252cd0342efd5a193de92bfbb6416b" "6bc387a588201caf31151205e4e468f382ecc0b888bac98b2b525006f7cb3307" "af4dc574b2f96f5345d55b98af024e2db9b9bbf1872b3132bc66dffbf5e1ba1d" "53993d7dc1db7619da530eb121aaae11c57eaf2a2d6476df4652e6f0bd1df740" "70cc30fd9d27a8d0d3ae82974ac2c409fd2cd5746470e2246778c6bec2d4857c" "14f13fee1792f44c448df33e3d3a03ce9adbf1b47da8be490f604ac7ae6659b9" "56ed144b399e3fbf1fcfc5af854f0053b21c0e3e7cfc824f0473da6f4e179695" default))
  '(evil-want-Y-yank-to-eol nil)
  '(hl-todo-keyword-faces
    '(("TODO" . "#dc752f")
@@ -725,8 +770,9 @@ This function is called at the very end of Spacemacs initialization."
      ("XXX+" . "#dc752f")
      ("\\?\\?\\?+" . "#dc752f")))
  '(lsp-pyls-plugins-jedi-completion-include-params nil)
+ '(org-habit-graph-column 50)
  '(package-selected-packages
-   '(company-quickhelp company-box nginx-mode yaml-mode tern nodejs-repl livid-mode skewer-mode js2-refactor multiple-cursors js2-mode js-doc import-js grizzl dap-mode bui tree-mode evil-snipe evil-commentary web-mode web-beautify tagedit slim-mode scss-mode pug-mode prettier-js simple-httpd helm-css-scss haml-mode emmet-mode company-web web-completion-data add-node-modules-path helm-pydoc helm-hoogle org-ql peg ov org-super-agenda ts general yapfify pytest pyenv-mode py-isort pippel pipenv pyvenv pip-requirements lsp-python-ms live-py-mode importmagic epc ctable concurrent deferred cython-mode company-anaconda blacken anaconda-mode pythonic lsp-haskell intero hlint-refactor hindent haskell-snippets flycheck-haskell dante lcr company-ghci company-ghc ghc haskell-mode company-cabal cmm-mode attrap systemd zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme kaolin-themes jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme eziam-theme exotica-theme espresso-theme dracula-theme doom-themes django-theme darktooth-theme darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme chocolate-theme autothemer cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme insert-shebang helm-gtags ggtags flycheck-bashate counsel-gtags company-shell wgrep smex ivy-yasnippet ivy-xref ivy-purpose ivy-hydra counsel-projectile counsel swiper ivy yasnippet-snippets xterm-color vterm unfill treemacs-magit smeargle shell-pop orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download org-cliplink org-brain mwim multi-term magit-svn magit-gitflow magit-popup lsp-ui lsp-treemacs htmlize helm-org-rifle helm-org helm-lsp helm-gitignore helm-git-grep helm-company helm-c-yasnippet gnuplot gitignore-templates gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link fuzzy flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip evil-org evil-magit magit transient git-commit with-editor eshell-z eshell-prompt-extras esh-help deft company-statistics company-lsp lsp-mode markdown-mode dash-functional company auto-yasnippet yasnippet auto-dictionary ac-ispell auto-complete ws-butler writeroom-mode visual-fill-column winum volatile-highlights vi-tilde-fringe uuidgen treemacs-projectile treemacs-evil treemacs ht pfuture toc-org symon symbol-overlay string-inflection spaceline-all-the-icons spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode password-generator paradox spinner overseer org-bullets open-junk-file nameless move-text macrostep lorem-ipsum link-hint indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-xref helm-themes helm-swoop helm-purpose window-purpose imenu-list helm-projectile projectile helm-mode-manager helm-make helm-ls-git helm-flx helm-descbinds helm-ag google-translate golden-ratio flycheck-package package-lint flycheck pkg-info epl flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state iedit evil-goggles evil-exchange evil-escape evil-ediff evil-cleverparens smartparens paredit evil-args evil-anzu anzu eval-sexp-fu elisp-slime-nav editorconfig dumb-jump doom-modeline shrink-path all-the-icons memoize f dash s devdocs define-word column-enforce-mode clean-aindent-mode centered-cursor-mode auto-highlight-symbol auto-compile packed aggressive-indent ace-window ace-link ace-jump-helm-line helm avy helm-core popup which-key use-package pcre2el org-plus-contrib hydra lv hybrid-mode font-lock+ evil goto-chg undo-tree dotenv-mode diminish bind-map bind-key async))
+   '(counsel-css anki-editor company-quickhelp company-box nginx-mode yaml-mode tern nodejs-repl livid-mode skewer-mode js2-refactor multiple-cursors js2-mode js-doc import-js grizzl dap-mode bui tree-mode evil-snipe evil-commentary web-mode web-beautify tagedit slim-mode scss-mode pug-mode prettier-js simple-httpd helm-css-scss haml-mode emmet-mode company-web web-completion-data add-node-modules-path helm-pydoc helm-hoogle org-ql peg ov org-super-agenda ts general yapfify pytest pyenv-mode py-isort pippel pipenv pyvenv pip-requirements lsp-python-ms live-py-mode importmagic epc ctable concurrent deferred cython-mode company-anaconda blacken anaconda-mode pythonic lsp-haskell intero hlint-refactor hindent haskell-snippets flycheck-haskell dante lcr company-ghci company-ghc ghc haskell-mode company-cabal cmm-mode attrap systemd zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme kaolin-themes jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme eziam-theme exotica-theme espresso-theme dracula-theme doom-themes django-theme darktooth-theme darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme chocolate-theme autothemer cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme insert-shebang helm-gtags ggtags flycheck-bashate counsel-gtags company-shell wgrep smex ivy-yasnippet ivy-xref ivy-purpose ivy-hydra counsel-projectile counsel swiper ivy yasnippet-snippets xterm-color vterm unfill treemacs-magit smeargle shell-pop orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download org-cliplink org-brain mwim multi-term magit-svn magit-gitflow magit-popup lsp-ui lsp-treemacs htmlize helm-org-rifle helm-org helm-lsp helm-gitignore helm-git-grep helm-company helm-c-yasnippet gnuplot gitignore-templates gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link fuzzy flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip evil-org evil-magit magit transient git-commit with-editor eshell-z eshell-prompt-extras esh-help deft company-statistics company-lsp lsp-mode markdown-mode dash-functional company auto-yasnippet yasnippet auto-dictionary ac-ispell auto-complete ws-butler writeroom-mode visual-fill-column winum volatile-highlights vi-tilde-fringe uuidgen treemacs-projectile treemacs-evil treemacs ht pfuture toc-org symon symbol-overlay string-inflection spaceline-all-the-icons spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode password-generator paradox spinner overseer org-bullets open-junk-file nameless move-text macrostep lorem-ipsum link-hint indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-xref helm-themes helm-swoop helm-purpose window-purpose imenu-list helm-projectile projectile helm-mode-manager helm-make helm-ls-git helm-flx helm-descbinds helm-ag google-translate golden-ratio flycheck-package package-lint flycheck pkg-info epl flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state iedit evil-goggles evil-exchange evil-escape evil-ediff evil-cleverparens smartparens paredit evil-args evil-anzu anzu eval-sexp-fu elisp-slime-nav editorconfig dumb-jump doom-modeline shrink-path all-the-icons memoize f dash s devdocs define-word column-enforce-mode clean-aindent-mode centered-cursor-mode auto-highlight-symbol auto-compile packed aggressive-indent ace-window ace-link ace-jump-helm-line helm avy helm-core popup which-key use-package pcre2el org-plus-contrib hydra lv hybrid-mode font-lock+ evil goto-chg undo-tree dotenv-mode diminish bind-map bind-key async))
  '(pdf-view-midnight-colors '("#b2b2b2" . "#292b2e")))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

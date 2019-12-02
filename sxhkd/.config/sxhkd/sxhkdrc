@@ -8,9 +8,10 @@ super + alt + control + shift + e
   emacsclient -c -n
 super + alt + control + shift + f
   firefox
-
 super + alt + control + shift + q
   prompt "Do you want to shutdown?" "shutdown -h now"
+super + alt + control + shift + r
+  prompt "Do you want to Reboot" "reboot"
 button7
   pactl set-sink-volume @DEFAULT_SINK@ +2%
 button6
@@ -30,3 +31,6 @@ XF86AudioRaiseVolume
 
 XF86AudioLowerVolume
   pactl set-sink-volume @DEFAULT_SINK@ -2%
+
+super + alt + control + shift + b
+  bookfinder
