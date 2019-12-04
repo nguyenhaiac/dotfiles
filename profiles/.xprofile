@@ -1,7 +1,10 @@
 #!/usr/bin/env sh
 stalonetray &
 sxhkd &
-emacs --daemon
 rescuetime &
 dropbox.py start
-[ -f ~/.Xmodmap ] && xmodmap ~/.Xmodmap
+xmodmap ~/.Xmodmap
+export PATH="$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/.local/bin/scripts:$PATH"
+export WORKON_HOME="$HOME/.venv/"
+emacs --daemon

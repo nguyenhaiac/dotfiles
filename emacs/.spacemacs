@@ -41,7 +41,7 @@ This function should only modify configuration layer settings."
      systemd
      shell-scripts
      (python :variables python-backend 'lsp
-             python-lsp-server 'mspyls
+             python-lsp-server 'pyls
              python-test-runner 'pytest
              python-formatter 'black
              python-format-on-save t)
@@ -215,7 +215,7 @@ It should only modify the values of Spacemacs settings."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press `SPC T n' to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(doom-opera-light
+   dotspacemacs-themes '(soft-stone
                          solarized-light)
 
    ;; Set the theme for the Spaceline. Supported themes are `spacemacs',
@@ -486,254 +486,8 @@ If you are unsure, try setting them in `dotspacemacs/user-config' first."
 This function is called only while dumping Spacemacs configuration. You can
 `require' or `load' the libraries of your choice that will be included in the
 dump."
-  )
-
-(defun dotspacemacs/user-config ()
-  "Configuration for user code:
-This function is called at the very end of Spacemacs startup, after layer
-configuration.
-Put your configuration code here, except for variables that should be set
-before packages are loaded."
-  (windmove-default-keybindings 'hyper)
-  (yas-global-mode 1)
-(defun bh/is-project-p ()
-  "Any task with a todo keyword subtask"
-  (save-restriction
-    (widen)
-    (let ((has-subtask)
-          (subtree-end (save-excursion (org-end-of-subtree t)))
-          (is-a-task (member (nth 2 (org-heading-components)) org-todo-keywords-1)))
-      (save-excursion
-        (forward-line 1)
-        (while (and (not has-subtask)
-                    (< (point) subtree-end)
-                    (re-search-forward "^\*+ " subtree-end t))
-          (when (member (org-get-todo-state) org-todo-keywords-1)
-            (setq has-subtask t))))
-      (and is-a-task has-subtask))))
-
-(defun bh/find-project-task ()
-  "Move point to the parent (project) task if any"
-  (save-restriction
-    (widen)
-    (let ((parent-task (save-excursion (org-back-to-heading 'invisible-ok) (point))))
-      (while (org-up-heading-safe)
-        (when (member (nth 2 (org-heading-components)) org-todo-keywords-1)
-          (setq parent-task (point))))
-      (goto-char parent-task)
-      parent-task)))
-
-(defun bh/skip-non-tasks ()
-  "Show non-project tasks.
-Skip project and sub-project tasks, habits, and project related tasks."
-  (save-restriction
-    (widen)
-    (let ((next-headline (save-excursion (or (outline-next-heading) (point-max)))))
-      (cond
-       ((bh/is-task-p)
-        nil)
-       (t
-        next-headline)))))
-
-(defun bh/skip-project-tasks ()
-  "Show non-project tasks.
-Skip project and sub-project tasks, habits, and project related tasks."
-  (save-restriction
-    (widen)
-    (let* ((subtree-end (save-excursion (org-end-of-subtree t))))
-      (cond
-       ((bh/is-project-p)
-        subtree-end)
-       ((org-is-habit-p)
-        subtree-end)
-       ((bh/is-project-subtree-p)
-        subtree-end)
-       (t
-        nil)))))
-
-(defun bh/is-task-p ()
-  "Any task with a todo keyword and no subtask"
-  (save-restriction
-    (widen)
-    (let ((has-subtask)
-          (subtree-end (save-excursion (org-end-of-subtree t)))
-          (is-a-task (member (nth 2 (org-heading-components)) org-todo-keywords-1)))
-      (save-excursion
-        (forward-line 1)
-        (while (and (not has-subtask)
-                    (< (point) subtree-end)
-                    (re-search-forward "^\*+ " subtree-end t))
-          (when (member (org-get-todo-state) org-todo-keywords-1)
-            (setq has-subtask t))))
-      (and is-a-task (not has-subtask)))))
-
-(defun bh/is-project-subtree-p ()
-  "Any task with a todo keyword that is in a project subtree.
-Callers of this function already widen the buffer view."
-  (let ((task (save-excursion (org-back-to-heading 'invisible-ok)
-                              (point))))
-    (save-excursion
-      (bh/find-project-task)
-      (if (equal (point) task)
-          nil
-        t))))
-
-(defun bh/skip-non-project-tasks ()
-  "Show project tasks.
-Skip project and sub-project tasks, habits, and loose non-project tasks."
-  (save-restriction
-    (widen)
-    (let* ((subtree-end (save-excursion (org-end-of-subtree t)))
-           (next-headline (save-excursion (or (outline-next-heading) (point-max)))))
-      (cond
-       ((bh/is-project-p)
-        next-headline)
-       ((org-is-habit-p)
-        subtree-end)
-       ((and (bh/is-project-subtree-p)
-             (member (org-get-todo-state) (list "NEXT")))
-        subtree-end)
-       ((not (bh/is-project-subtree-p))
-        subtree-end)
-       (t
-        nil)))))
-(setq spacemacs-theme-org-agenda-height nil
-      org-agenda-start-day "-1d"
-      org-agenda-skip-scheduled-if-done t
-      org-agenda-skip-deadline-if-done t
-      org-agenda-include-deadlines t
-      org-agenda-include-diary t
-      org-agenda-block-separator nil
-      org-agenda-compact-blocks t
-      org-agenda-start-with-log-mode t)
-(setq org-agenda-files (list "~/Dropbox/orggtd/todo.org"))
-(require 'org-habit)
-(custom-declare-face '+org-todo-active '((t (:inherit (bold font-lock-constant-face org-todo)))) "")
-(custom-declare-face '+org-todo-project '((t (:inherit (bold font-lock-doc-face org-todo)))) "")
-(custom-declare-face '+org-todo-onhold '((t (:inherit (bold warning org-todo)))) "")
-(setq org-todo-keywords
-      '((sequence
-         "TODO(t)"  ; A task that needs doing & is ready to do
-         "NEXT(n)"
-         "STRT(s)"  ; A task that is in progress
-         "WAIT(w)"  ; Something is holding up this task; or it is paused
-         "|"
-         "DONE(d)"  ; Task successfully completed
-         "PHONE(p)"
-         "MEETING(m)"
-         "KILL(k)") ; Task was cancelled, aborted or is no longer applicable
-        (sequence
-         "[ ](T)"   ; A task that needs doing
-         "[-](S)"   ; Task is in progress
-         "[?](W)"   ; Task is being held up or paused
-         "|"
-         "[X](D)")) ; Task was completed
-      org-todo-keyword-faces
-      '(("[-]"  . +org-todo-active)
-        ("STRT" . +org-todo-active)
-        ("[?]"  . +org-todo-onhold)
-        ("WAIT" . +org-todo-onhold)
-        ))
-
-(org-babel-do-load-languages
- 'org-babel-load-languages '((C . t)))
-
-
-(setq org-agenda-format-date (lambda (date) (concat "\n"
-                                                    (make-string (window-width) 9472)
-                                                    "\n"
-                                                    (org-agenda-format-date-aligned date))))
-(setq org-agenda-custom-commands
-      '(("z" "Super zaen view"
-         ((agenda "" ((org-agenda-span 3)
-                      (org-super-agenda-groups
-                       '((:name "Habit"
-				:habit t)
-
-			 (:name "Schedule"
-                                :time-grid t
-				:scheduled t
-                                :order 2)
-			 (:discard (:anything t))))))
-
-	  (alltodo "" ((org-agenda-overriding-header "Project Task")
-		      (org-agenda-skip-function 'bh/skip-non-project-tasks)
-                      (org-super-agenda-groups
-                       '((:name none
-				 :todo t
-                                 :order 1)))))
-
-	  (alltodo "" ((org-agenda-overriding-header "Active Project")
-                       (org-super-agenda-groups
-                        '((:name none
-                                 :children "NEXT"
-                                 :order 1)
-                          (:discard (:anything t))))))
-
-	  (alltodo "" ((org-agenda-overriding-header "Next Task")
-                       (org-super-agenda-groups
-                        '((:name none
-				 :discard (:not (:todo "NEXT"))
-				 :discard (:habit)
-                                 :order 1)
-			  (:name none
-				 :todo "NEXT"
-				 :face (:background "RosyBrown1" :underline t))
-                          ))))
-
-	  (alltodo "" ((org-agenda-overriding-header "Doing")
-                       (org-super-agenda-groups
-                        '((:name none
-				 :discard (:not (:todo ("STRT" "[-]")))
-				 :discard (:habit)
-                                 :order 1)
-			  (:name none
-				 :todo t
-				 :face (:background "#8a9a5b" :underline t))
-                          ))))
-
-	  (alltodo "" ((org-agenda-overriding-header "Standalone Task")
-		       (org-agenda-skip-function 'bh/skip-project-tasks)
-                       (org-super-agenda-groups
-                        '((:name none
-                                 :todo ("TODO" "[ ]" "WAIT" "[?]")
-                                 :order 1)
-                          (:discard (:anything t))))))
-
-          (alltodo "" ((org-agenda-overriding-header "Stuck Project")
-                       (org-super-agenda-groups
-                        '((:name none
-                                 :discard (:children "NEXT")
-                                 :order 1)
-                          (:name none
-                                 :discard (:children nil)
-                                 :order 1)
-                          (:name none
-                                 :children todo)))))
-	  ))))
-(setq org-capture-templates
-      (quote (("t" "todo" entry (file+headline "~/Dropbox/orggtd/todo.org" "Inbox")
-               "* [ ] %?\n%U\n%a\n" :clock-in t :clock-resume t)
-              ("n" "note" entry (file "~/Dropbox/orggtd/todo.org")
-               "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
-              ("j" "Journal" entry (file+datetree "~/Dropbox/orggtd/journal.org")
-               "* %?\n%U\n" :clock-in t :clock-resume t)
-              ("m" "Meeting" entry (file "~/Dropbox/orggtd/todo.org")
-               "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
-              ("p" "Phone call" entry (file "~/Dropbox/orggtd/todo.org")
-               "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
-              ("h" "Habit" entry (file "~/Dropbox/orggtd/todo.org")
-	       "* NEXT %?\nSCHEDULED: <%<%Y-%m-%d %a .+1d>>\n:PROPERTIES:\n:CREATED: %U\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:LOGGING: DONE(!)\n:ARCHIVE: %%s_archive::* Habits\n:END:\n%U\n"
-	       ))))
-(setq  org-habit-following-days 7
-       org-habit-preceding-days 10
-       org-habit-show-habits-only-for-today t)
-(setq org-agenda-tags-column -102)
-(setq org-habit-graph-column 50)
-(setq org-clock-out-remove-zero-time-clocks t)
-(setq org-clock-out-when-done t)
-(setq org-clock-persist t)
-
+  (add-to-list 'load-path "~/.dotfiles/emacs/")
+  (require 'orginit)
   )
 
 ;; Do not write anything past this comment. This is where Emacs will
@@ -751,7 +505,7 @@ This function is called at the very end of Spacemacs initialization."
  '(company-idle-delay 0.05)
  '(company-minimum-prefix-length 1)
  '(custom-safe-themes
-   '("285d1bf306091644fb49993341e0ad8bafe57130d9981b680c1dbd974475c5c7" "de9fa4b3614611bed2fe75e105bd0d37542924b977299736f158dd4d7343c666" "2d392972cbe692ee4ac61dc79907af65051450caf690a8c4d36eb40c1857ba7d" "c8f959fb1ea32ddfc0f50db85fea2e7d86b72bb4d106803018be1c3566fd6c72" "c3e6b52caa77cb09c049d3c973798bc64b5c43cc437d449eacf35b3e776bf85c" "3da3325f3fb3a15fc49345f52a0ebbb66836c8f235c6df01298b6cfabf4b4ec0" "1728dfd9560bff76a7dc6c3f61e9f4d3e6ef9d017a83a841c117bd9bebe18613" "39dd7106e6387e0c45dfce8ed44351078f6acd29a345d8b22e7b8e54ac25bac4" "ea44def1fa1b169161512d79a65f54385497a6a5fbc96d59c218f852ce35b2ab" "b3697d12fb7c087e1337432be92026b5fd218e7e43277918c0fce680d573a90c" "2d1fe7c9007a5b76cea4395b0fc664d0c1cfd34bb4f1860300347cdad67fb2f9" "4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "e6ccd0cc810aa6458391e95e4874942875252cd0342efd5a193de92bfbb6416b" "6bc387a588201caf31151205e4e468f382ecc0b888bac98b2b525006f7cb3307" "af4dc574b2f96f5345d55b98af024e2db9b9bbf1872b3132bc66dffbf5e1ba1d" "53993d7dc1db7619da530eb121aaae11c57eaf2a2d6476df4652e6f0bd1df740" "70cc30fd9d27a8d0d3ae82974ac2c409fd2cd5746470e2246778c6bec2d4857c" "14f13fee1792f44c448df33e3d3a03ce9adbf1b47da8be490f604ac7ae6659b9" "56ed144b399e3fbf1fcfc5af854f0053b21c0e3e7cfc824f0473da6f4e179695" default))
+   '("7824eb15543c5c57c232c131ca64c4f25bfeeeda6744f71b999787a9172fa74e" "7f1d414afda803f3244c6fb4c2c64bea44dac040ed3731ec9d75275b9e831fe5" "00445e6f15d31e9afaa23ed0d765850e9cd5e929be5e8e63b114a3346236c44c" "8d805143f2c71cfad5207155234089729bb742a1cb67b7f60357fdd952044315" "72085337718a3a9b4a7d8857079aa1144ea42d07a4a7696f86627e46ac52f50b" "621595cbf6c622556432e881945dda779528e48bb57107b65d428e61a8bb7955" "cdb4ffdecc682978da78700a461cdc77456c3a6df1c1803ae2dd55c59fa703e3" "285d1bf306091644fb49993341e0ad8bafe57130d9981b680c1dbd974475c5c7" "de9fa4b3614611bed2fe75e105bd0d37542924b977299736f158dd4d7343c666" "2d392972cbe692ee4ac61dc79907af65051450caf690a8c4d36eb40c1857ba7d" "c8f959fb1ea32ddfc0f50db85fea2e7d86b72bb4d106803018be1c3566fd6c72" "c3e6b52caa77cb09c049d3c973798bc64b5c43cc437d449eacf35b3e776bf85c" "3da3325f3fb3a15fc49345f52a0ebbb66836c8f235c6df01298b6cfabf4b4ec0" "1728dfd9560bff76a7dc6c3f61e9f4d3e6ef9d017a83a841c117bd9bebe18613" "39dd7106e6387e0c45dfce8ed44351078f6acd29a345d8b22e7b8e54ac25bac4" "ea44def1fa1b169161512d79a65f54385497a6a5fbc96d59c218f852ce35b2ab" "b3697d12fb7c087e1337432be92026b5fd218e7e43277918c0fce680d573a90c" "2d1fe7c9007a5b76cea4395b0fc664d0c1cfd34bb4f1860300347cdad67fb2f9" "4cf3221feff536e2b3385209e9b9dc4c2e0818a69a1cdb4b522756bcdf4e00a4" "e6ccd0cc810aa6458391e95e4874942875252cd0342efd5a193de92bfbb6416b" "6bc387a588201caf31151205e4e468f382ecc0b888bac98b2b525006f7cb3307" "af4dc574b2f96f5345d55b98af024e2db9b9bbf1872b3132bc66dffbf5e1ba1d" "53993d7dc1db7619da530eb121aaae11c57eaf2a2d6476df4652e6f0bd1df740" "70cc30fd9d27a8d0d3ae82974ac2c409fd2cd5746470e2246778c6bec2d4857c" "14f13fee1792f44c448df33e3d3a03ce9adbf1b47da8be490f604ac7ae6659b9" "56ed144b399e3fbf1fcfc5af854f0053b21c0e3e7cfc824f0473da6f4e179695" default))
  '(evil-want-Y-yank-to-eol nil)
  '(hl-todo-keyword-faces
    '(("TODO" . "#dc752f")

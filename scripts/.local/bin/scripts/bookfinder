@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+book=$(find /home/hainguyen/Dropbox/Calibre | rofi -threads 0 -width 100 -dmenu -i -p "locate:")
+if [ -f "$book" ]; then
+    zathura "$book"
+fi
