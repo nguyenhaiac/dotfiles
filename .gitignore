@@ -1,2 +1,5 @@
 nvim/.config/nvim/autoload/
 nvim/.config/nvim/pluged/
+xmonad.errors
+xmonad-x86_64-linux
+vifm.vim
