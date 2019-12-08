@@ -1,17 +1,19 @@
 [colors]
-background = #222
-background-alt = #444
-foreground = #dfdfdf
-foreground-alt = #888
 primary = #ffb52a
 secondary = #e60053
 alert = #bd2c40
 
+background = ${xrdb:color0:#222}
+background-alt = ${xrdb:color3:#222}
+foreground = ${xrdb:color7:#222}
+foreground-alt = ${xrdb:color2:#555}
+highlight = ${xrdb:color2:#f00}
+urgent = #f00
 [bar/main]
 monitor = ${env:MONITOR:}
 width = 100%
 height = 2.5%
-radius = 6.0
+radius = 0.0
 fixed-center = false
 top = true
 
@@ -19,7 +21,7 @@ background = ${colors.background}
 foreground = ${colors.foreground}
 
 border-size = 0
-line-size = 2
+line-size = 3
 padding = 1
 module-margin = 1
 
@@ -30,7 +32,7 @@ font-3 = "Noto Sans Symbols2:size=10;1"
 
 modules-left = date ewmh xwindow
 modules-center =
-modules-right = github cpu battery
+modules-right = memory wlan cpu battery
 
 tray-position = right
 tray-padding = 2
@@ -46,14 +48,15 @@ label = %title:0:30:...%
 [module/ewmh]
 type = internal/xworkspaces
 pin-workspaces = false
-enable-click = false
+enable-click = true
 enable-scroll = false
 
 label-active = " %name% "
-label-active-underline = #fba922
+label-active-underline = ${xrdb:color9}
 
 label-occupied = " %name% "
-label-occupied-foreground = #ffaa00
+label-occupied-foreground = #FFFFFF
+label-occupied-underline = ${xrdb:color12}
 
 label-urgent = " %name% "
 label-urgent-underline = #9b0a20
@@ -65,21 +68,22 @@ label-empty-foreground = #555555
 type = internal/cpu
 interval = 2
 format-prefix = "💻 "
-format-prefix-foreground = ${colors.foreground-alt}
-format-underline = #f90000
+format-prefix-foreground = ${xrdb:color4}
+format-underline = ${xrdb:color5}
 label = %percentage:2%%
+line-size = 5 
 
 [module/memory]
 type = internal/memory
 interval = 2
 format-prefix = "🗍 "
-format-prefix-foreground = ${colors.foreground-alt}
+format-prefix-foreground = ${xrdb:color10}
 format-underline = #4bffdc
 label = %percentage_used:2%%
 
 [module/wlan]
 type = internal/network
-interface = wlp2s0
+interface = wlp5s0
 interval = 5.0
 
 format-connected = <ramp-signal> <label-connected>
@@ -100,18 +104,6 @@ interface = enp12s0u1
 interval = 3.0
 
 format-connected-underline = #115511
-format-connected-prefix = "🖧 "
-format-connected-prefix-foreground = ${colors.foreground-alt}
-label-connected = %local_ip%
-
-format-disconnected =
-
-[module/eth1]
-type = internal/network
-interface = enp0s31f6
-interval = 3.0
-
-format-connected-underline = #55aa55
 format-connected-prefix = "🖧 "
 format-connected-prefix-foreground = ${colors.foreground-alt}
 label-connected = %local_ip%

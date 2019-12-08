@@ -78,8 +78,6 @@ myTextEditor    = "emacs"     -- Sets default text editor
 myBorderWidth   = 2         -- Sets border width for windows
 
 main = do
-    -- Launching three instances of xmobar on their monitors.
-    xmproc1 <- spawnPipe "xmobar -x 0 /home/hainguyen/.config/xmobar/xmobarrc"
     -- the xmonad, ya know...what the WM is named after!
     xmonad $ ewmh desktopConfig
         { manageHook = ( isFullscreen --> doFullFloat ) <+> myManageHook <+> manageHook desktopConfig <+> manageDocks
@@ -98,9 +96,10 @@ main = do
 ---AUTOSTART
 ------------------------------------------------------------------------
 myStartupHook = do
-          --spawnOnce "emacs --daemon &"
-          -- spawnOnce "nitrogen --restore &"
-          -- spawnOnce "compton --config /home/dt/.config/compton/compton.conf &"
+          spawnOnce "emacs --daemon &"
+	  spawnOnce "/home/hainguyen/.config/polybar/launch.sh"
+          spawnOnce "nitrogen --restore &"
+          spawnOnce "compton --config /home/hainguyen/.config/compton.conf &"
           setWMName "LG3D"
           --spawnOnce "exec /usr/bin/trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --width 15 --transparent true --alpha 0 --tint 0x292d3e --height 19 &"
           --spawnOnce "/home/dt/.xmonad/xmonad.start" -- Sets our wallpaper
