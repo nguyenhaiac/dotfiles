@@ -30,7 +30,7 @@ font-1 = "Noto Sans Mono:size=10;1"
 font-2 = "Noto Sans Symbols:size=10;1"
 font-3 = "Noto Sans Symbols2:size=10;1"
 
-modules-left = date ewmh xwindow
+modules-left = date i3 ewmh xwindow
 modules-center =
 modules-right = memory wlan cpu battery
 
