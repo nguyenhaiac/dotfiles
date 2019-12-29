@@ -1,8 +1,8 @@
 super + Return
 	st
-super + d
-	rofi -show run
 super + r
+	rofi -show run
+super + f
 	st -e ranger
 super + alt + control + shift + e
   emacsclient -c -n

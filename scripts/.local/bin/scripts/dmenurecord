@@ -28,7 +28,7 @@ killrecording() {
 	}
 
 screencast() { \
-	ffmpeg -y \
+	primusrun ffmpeg -y \
 	-f x11grab \
 	-framerate 60 \
 	-s $(xdpyinfo | grep dimensions | awk '{print $2;}') \
@@ -41,7 +41,7 @@ screencast() { \
 	updateicon "⏺️🎙️"
        	}
 
-video() { ffmpeg \
+video() { primusrun ffmpeg \
 	-f x11grab \
 	-s $(xdpyinfo | grep dimensions | awk '{print $2;}') \
 	-i $DISPLAY \
